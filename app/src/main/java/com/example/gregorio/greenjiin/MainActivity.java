@@ -1,5 +1,6 @@
 package com.example.gregorio.greenjiin;
 
+import android.net.Uri;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -18,9 +19,10 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import android.widget.TextView;
+import com.example.gregorio.greenjiin.LoginFragment.OnFragmentInteractionListener;
 import com.facebook.login.LoginResult;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements OnFragmentInteractionListener {
 
   /**
    * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -59,15 +61,11 @@ public class MainActivity extends AppCompatActivity {
     mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
     tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
 
-    FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-    fab.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-            .setAction("Action", null).show();
-      }
-    });
-
+    LoginFragment loginFragment = new LoginFragment();
+    FragmentManager fragmentManager = getSupportFragmentManager();
+    fragmentManager.beginTransaction().add(R.id.fragment_container, loginFragment)
+        .addToBackStack(null)
+        .commit();
 
   }
 
@@ -96,6 +94,10 @@ public class MainActivity extends AppCompatActivity {
     return super.onOptionsItemSelected(item);
   }
 
+  @Override
+  public void onFragmentInteraction(Uri uri) {
+
+  }
 
 
   /**
