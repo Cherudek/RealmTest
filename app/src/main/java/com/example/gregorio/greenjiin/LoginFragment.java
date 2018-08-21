@@ -1,14 +1,31 @@
 package com.example.gregorio.greenjiin;
 
+import static com.example.gregorio.greenjiin.Constants.AUTH_URL;
+
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.TextView;
-import java.util.zip.Inflater;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.ScrollView;
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import io.realm.ObjectServerError;
+import io.realm.SyncCredentials;
+import io.realm.SyncUser;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -28,6 +45,20 @@ public class LoginFragment extends Fragment {
   // TODO: Rename and change types of parameters
   private String mParam1;
   private String mParam2;
+  // private EditText mNicknameTextView;
+  // private View mProgressView;
+  @BindView(R.id.sign_in_form)
+  ScrollView mLoginFormView;
+  @BindView(R.id.username)
+  EditText mNicknameTextView;
+  @BindView(R.id.password)
+  EditText mPassword;
+  @BindView(R.id.sign_in_progress)
+  ProgressBar mProgressView;
+  @BindView(R.id.sign_in_button)
+  Button mLoginBtn;
+  private Uri mUri = null;
+  private View rootView;
 
   private OnFragmentInteractionListener mListener;
 
@@ -60,19 +91,92 @@ public class LoginFragment extends Fragment {
       mParam1 = getArguments().getString(ARG_PARAM1);
       mParam2 = getArguments().getString(ARG_PARAM2);
     }
+
+    if (SyncUser.current() != null) {
+      this.goToMainActivity(mUri);
+    }
+
   }
+
+
 
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
       Bundle savedInstanceState) {
-    View rootView = inflater.inflate(R.layout.fragment_login, container, false);
-    TextView textView = new TextView(getActivity());
-    textView.setText(R.string.hello_blank_fragment);
+    rootView = inflater.inflate(R.layout.fragment_login, container, false);
+    ButterKnife.bind(this, rootView);
+
+
     return rootView;
   }
 
-  // TODO: Rename method, update argument and hook method into UI event
-  public void onButtonPressed(Uri uri) {
+  @Override
+  public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    super.onViewCreated(view, savedInstanceState);
+
+    mLoginBtn.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        attemptLogin();
+      }
+    });
+  }
+
+  private void attemptLogin() {
+    // Reset errors.
+    mNicknameTextView.setError(null);
+    // Store values at the time of the login attempt.
+    String nickname = mNicknameTextView.getText().toString();
+    showProgress(true);
+
+    SyncCredentials credentials = SyncCredentials.nickname(nickname, false);
+    SyncUser.logInAsync(credentials, AUTH_URL, new SyncUser.Callback<SyncUser>() {
+      @Override
+      public void onSuccess(SyncUser user) {
+        showProgress(false);
+        goToMainActivity(mUri);
+      }
+
+      @Override
+      public void onError(ObjectServerError error) {
+        showProgress(false);
+        mNicknameTextView.setError("Uh oh something went wrong! (check your logcat please)");
+        mNicknameTextView.requestFocus();
+        Log.e("Login error", error.toString());
+      }
+    });
+  }
+
+
+  /**
+   * Shows the progress UI and hides the login form.
+   */
+  @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
+  private void showProgress(final boolean show) {
+    int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
+    mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+
+    mLoginFormView.animate().setDuration(shortAnimTime).alpha(
+        show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+      @Override
+      public void onAnimationEnd(Animator animation) {
+        mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+      }
+    });
+
+    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+    mProgressView.animate().setDuration(shortAnimTime).alpha(
+        show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+      @Override
+      public void onAnimationEnd(Animator animation) {
+        mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+      }
+    });
+  }
+
+
+  public void goToMainActivity(Uri uri) {
     if (mListener != null) {
       mListener.onFragmentInteraction(uri);
     }
@@ -106,7 +210,6 @@ public class LoginFragment extends Fragment {
    * >Communicating with Other Fragments</a> for more information.
    */
   public interface OnFragmentInteractionListener {
-
     // TODO: Update argument type and name
     void onFragmentInteraction(Uri uri);
   }
