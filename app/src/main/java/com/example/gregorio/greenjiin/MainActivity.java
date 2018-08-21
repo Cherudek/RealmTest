@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import com.example.gregorio.greenjiin.LoginFragment.OnFragmentInteractionListener;
+import io.realm.SyncUser;
 
 public class MainActivity extends AppCompatActivity implements OnFragmentInteractionListener {
 
@@ -61,11 +62,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     fragmentManager.beginTransaction().add(R.id.fragment_container, loginFragment)
         .addToBackStack(null)
         .commit();
-
   }
-
-
-
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
@@ -82,7 +79,18 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     int id = item.getItemId();
 
     //noinspection SimplifiableIfStatement
-    if (id == R.id.action_settings) {
+    if (id == R.id.action_log_out) {
+
+      SyncUser syncUser = SyncUser.current();
+      if (syncUser != null) {
+        syncUser.logOut();
+        loginFragment = new LoginFragment();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction().add(R.id.fragment_container, loginFragment)
+            .addToBackStack(null)
+            .commit();
+      }
+
       return true;
     }
 
