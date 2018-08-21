@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import android.widget.TextView;
+import com.facebook.login.LoginResult;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,6 +31,8 @@ public class MainActivity extends AppCompatActivity {
    * {@link android.support.v4.app.FragmentStatePagerAdapter}.
    */
   private SectionsPagerAdapter mSectionsPagerAdapter;
+
+  private FacebookAuth facebookAuth;
 
   /**
    * The {@link ViewPager} that will host the section contents.
@@ -65,7 +68,10 @@ public class MainActivity extends AppCompatActivity {
       }
     });
 
+
   }
+
+
 
 
   @Override
@@ -89,6 +95,8 @@ public class MainActivity extends AppCompatActivity {
 
     return super.onOptionsItemSelected(item);
   }
+
+
 
   /**
    * A placeholder fragment containing a simple view.
