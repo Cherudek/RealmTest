@@ -1,12 +1,18 @@
 package com.example.gregorio.greenjiin;
 
+import static com.example.gregorio.greenjiin.Constants.REALM_BASE_URL;
+
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,8 +21,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import com.example.gregorio.greenjiin.LoginFragment.OnFragmentInteractionListener;
 import io.realm.Realm;
+import io.realm.RealmResults;
+import io.realm.SyncConfiguration;
 import io.realm.SyncUser;
 
 public class MainActivity extends AppCompatActivity implements OnFragmentInteractionListener {
@@ -67,8 +77,6 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     fragmentManager.beginTransaction().add(R.id.fragment_container, loginFragment)
         .addToBackStack(null)
         .commit();
-
-
 
   }
 
@@ -132,6 +140,11 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
      * fragment.
      */
     private static final String ARG_SECTION_NUMBER = "section_number";
+    @BindView(R.id.recycler_view)
+    RecyclerView recyclerView;
+    private Realm realm;
+    private View rootView;
+
 
     public PlaceholderFragment() {
     }
@@ -145,17 +158,48 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
       Bundle args = new Bundle();
       args.putInt(ARG_SECTION_NUMBER, sectionNumber);
       fragment.setArguments(args);
+
       return fragment;
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
         Bundle savedInstanceState) {
-      View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+      rootView = inflater.inflate(R.layout.fragment_main, container, false);
       TextView textView = rootView.findViewById(R.id.section_label);
       textView
           .setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+      ButterKnife.bind(this, rootView);
+
+
+
       return rootView;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+      super.onViewCreated(view, savedInstanceState);
+
+      SyncConfiguration configuration = SyncUser.current()
+          .createConfiguration(REALM_BASE_URL + "/default")
+          .build();
+
+      realm = Realm.getInstance(configuration);
+      RealmResults<MopedModel> moped = realm
+          .where(MopedModel.class)
+          .findAllAsync();
+
+      final MopedCo1Adapter mopedCo1Adapter = new MopedCo1Adapter(moped, true);
+      recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
+      recyclerView.setAdapter(mopedCo1Adapter);
+
+
+    }
+
+    @Override
+    public void onDestroy() {
+      super.onDestroy();
+      realm.close();
     }
   }
 

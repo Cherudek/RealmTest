@@ -2,13 +2,11 @@ package com.example.gregorio.greenjiin;
 
 import static com.example.gregorio.greenjiin.Constants.AUTH_URL;
 import static com.example.gregorio.greenjiin.Constants.REALM_BASE_URL;
-import static com.example.gregorio.greenjiin.Constants.mopedCo1;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -65,7 +63,6 @@ public class LoginFragment extends Fragment {
   ProgressBar mProgressView;
   @BindView(R.id.sign_in_button)
   Button mLoginBtn;
-  private Uri mUri = null;
   private View rootView;
 
   private OnFragmentInteractionListener mListener;
@@ -141,6 +138,7 @@ public class LoginFragment extends Fragment {
         showProgress(false);
         goToMainActivity(realm);
         setUpRealm();
+
       }
 
       @Override
@@ -154,33 +152,10 @@ public class LoginFragment extends Fragment {
   }
 
   private RealmResults<MopedModel> setUpRealm() {
-//    Realm.setDefaultConfiguration(SyncUser.current().getDefaultConfiguration());
-//    realm = Realm.getDefaultInstance();
-
     SyncConfiguration configuration = SyncUser.current()
         .createConfiguration(REALM_BASE_URL + "/default")
         .build();
     realm = Realm.getInstance(configuration);
-
-    // Create a Realm on the device and sync it to the cloud.
-    this.realm.executeTransactionAsync(realm -> {
-//      for (int i = 0; i < mopedCo1.length; i++ ){
-//        MopedModel item = new MopedModel();
-//        item.setMopedId(Integer.toString(i));
-//        item.setMopedName("moped1" + i);
-//        item.setMopedUrl(mopedCo1[i]);
-//        realm.insert(item);
-//      }
-
-      MopedModel item = new MopedModel();
-      item.setMopedId("07");
-      item.setMopedName("moped7");
-      item.setMopedUrl(mopedCo1[6]);
-      item.setCompanyName("mopedCo1");
-      realm.insert(item);
-
-    });
-
     return realm
         .where(MopedModel.class)
         .sort("timestamp", Sort.DESCENDING)
@@ -191,7 +166,9 @@ public class LoginFragment extends Fragment {
   public void onDestroy() {
     super.onDestroy();
     // Close the Realm Object.
-    realm.close();
+    if (realm != null) {
+      realm.close();
+    }
   }
 
   /**

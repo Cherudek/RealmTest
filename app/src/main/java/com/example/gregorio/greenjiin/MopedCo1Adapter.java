@@ -21,22 +21,22 @@ public class MopedCo1Adapter extends RealmRecyclerViewAdapter<MopedModel, MyView
 
   public MopedCo1Adapter(
       @Nullable OrderedRealmCollection<MopedModel> data,
-      boolean autoUpdate, Context context) {
+      boolean autoUpdate) {
     super(data, autoUpdate);
-    this.context = context;
   }
 
   public MopedCo1Adapter(
       @Nullable OrderedRealmCollection<MopedModel> data,
-      boolean autoUpdate, boolean updateOnModification, Context context) {
+      boolean autoUpdate, boolean updateOnModification) {
     super(data, autoUpdate, updateOnModification);
-    this.context = context;
   }
 
   @NonNull
   @Override
   public MyViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-    View view = LayoutInflater.from(viewGroup.getContext())
+    context = viewGroup.getContext();
+
+    View view = LayoutInflater.from(context)
         .inflate(R.layout.photo_item, viewGroup, false);
     return new MyViewHolder(view);
   }
