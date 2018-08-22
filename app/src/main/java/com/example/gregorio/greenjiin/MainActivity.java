@@ -2,6 +2,7 @@ package com.example.gregorio.greenjiin;
 
 import static com.example.gregorio.greenjiin.Constants.REALM_BASE_URL;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -24,12 +25,14 @@ import android.widget.TextView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import com.example.gregorio.greenjiin.LoginFragment.OnFragmentInteractionListener;
+import com.example.gregorio.greenjiin.Moped2Fragment.OnFragment2InteractionListener;
 import io.realm.Realm;
 import io.realm.RealmResults;
 import io.realm.SyncConfiguration;
 import io.realm.SyncUser;
 
-public class MainActivity extends AppCompatActivity implements OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity implements OnFragmentInteractionListener,
+    OnFragment2InteractionListener {
 
   /**
    * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -129,6 +132,11 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
   }
 
+  @Override
+  public void onFragment2Interaction(Uri uri) {
+
+  }
+
 
   /**
    * A placeholder fragment containing a simple view.
@@ -187,6 +195,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
       realm = Realm.getInstance(configuration);
       RealmResults<MopedModel> moped = realm
           .where(MopedModel.class)
+          .contains("companyName", "mopedCo1")
           .findAllAsync();
 
       final MopedCo1Adapter mopedCo1Adapter = new MopedCo1Adapter(moped, true);
@@ -217,13 +226,21 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     public Fragment getItem(int position) {
       // getItem is called to instantiate the fragment for the given page.
       // Return a PlaceholderFragment (defined as a static inner class below).
-      return PlaceholderFragment.newInstance(position + 1);
+      switch (position) {
+        case 0:
+          return PlaceholderFragment.newInstance(0);
+        case 1:
+          return Moped2Fragment.newInstance(1);
+        default:
+          return null;
+      }
+      //return PlaceholderFragment.newInstance(position + 1);
     }
 
     @Override
     public int getCount() {
       // Show 3 total pages.
-      return 3;
+      return 2;
     }
   }
 
