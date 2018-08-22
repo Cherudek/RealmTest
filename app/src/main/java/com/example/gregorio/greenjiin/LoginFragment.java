@@ -1,6 +1,8 @@
 package com.example.gregorio.greenjiin;
 
 import static com.example.gregorio.greenjiin.Constants.AUTH_URL;
+import static com.example.gregorio.greenjiin.Constants.REALM_BASE_URL;
+import static com.example.gregorio.greenjiin.Constants.mopedCo1;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -24,6 +26,10 @@ import android.widget.ScrollView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.realm.ObjectServerError;
+import io.realm.Realm;
+import io.realm.RealmResults;
+import io.realm.Sort;
+import io.realm.SyncConfiguration;
 import io.realm.SyncCredentials;
 import io.realm.SyncUser;
 
@@ -45,6 +51,8 @@ public class LoginFragment extends Fragment {
   // TODO: Rename and change types of parameters
   private String mParam1;
   private String mParam2;
+  private Realm realm;
+
   // private EditText mNicknameTextView;
   // private View mProgressView;
   @BindView(R.id.sign_in_form)
@@ -93,7 +101,7 @@ public class LoginFragment extends Fragment {
     }
 
     if (SyncUser.current() != null) {
-      this.goToMainActivity(mUri);
+      this.goToMainActivity(realm);
     }
 
   }
@@ -131,7 +139,8 @@ public class LoginFragment extends Fragment {
       @Override
       public void onSuccess(SyncUser user) {
         showProgress(false);
-        goToMainActivity(mUri);
+        goToMainActivity(realm);
+        setUpRealm();
       }
 
       @Override
@@ -144,6 +153,46 @@ public class LoginFragment extends Fragment {
     });
   }
 
+  private RealmResults<MopedModel> setUpRealm() {
+//    Realm.setDefaultConfiguration(SyncUser.current().getDefaultConfiguration());
+//    realm = Realm.getDefaultInstance();
+
+    SyncConfiguration configuration = SyncUser.current()
+        .createConfiguration(REALM_BASE_URL + "/default")
+        .build();
+    realm = Realm.getInstance(configuration);
+
+    // Create a Realm on the device and sync it to the cloud.
+    this.realm.executeTransactionAsync(realm -> {
+//      for (int i = 0; i < mopedCo1.length; i++ ){
+//        MopedModel item = new MopedModel();
+//        item.setMopedId(Integer.toString(i));
+//        item.setMopedName("moped1" + i);
+//        item.setMopedUrl(mopedCo1[i]);
+//        realm.insert(item);
+//      }
+
+      MopedModel item = new MopedModel();
+      item.setMopedId("07");
+      item.setMopedName("moped7");
+      item.setMopedUrl(mopedCo1[6]);
+      item.setCompanyName("mopedCo1");
+      realm.insert(item);
+
+    });
+
+    return realm
+        .where(MopedModel.class)
+        .sort("timestamp", Sort.DESCENDING)
+        .findAllAsync();
+  }
+
+  @Override
+  public void onDestroy() {
+    super.onDestroy();
+    // Close the Realm Object.
+    realm.close();
+  }
 
   /**
    * Shows the progress UI and hides the login form.
@@ -173,9 +222,9 @@ public class LoginFragment extends Fragment {
   }
 
 
-  public void goToMainActivity(Uri uri) {
+  public void goToMainActivity(Realm realm) {
     if (mListener != null) {
-      mListener.onFragmentInteraction(uri);
+      mListener.onFragmentInteraction(realm);
     }
   }
 
@@ -201,13 +250,9 @@ public class LoginFragment extends Fragment {
    * fragment to allow an interaction in this fragment to be communicated
    * to the activity and potentially other fragments contained in that
    * activity.
-   * <p>
-   * See the Android Training lesson <a href=
-   * "http://developer.android.com/training/basics/fragments/communicating.html"
-   * >Communicating with Other Fragments</a> for more information.
    */
   public interface OnFragmentInteractionListener {
-    // TODO: Update argument type and name
-    void onFragmentInteraction(Uri uri);
+
+    void onFragmentInteraction(Realm realm);
   }
 }

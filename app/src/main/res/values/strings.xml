@@ -11,6 +11,9 @@
   <string name="prompt_password">Password</string>
   <string name="action_log_in_short">Sign in</string>
   <string name="action_sign_in">Log In</string>
+  <string name="grey_photo_background_for_image_list_view">Grey Photo background for image list view</string>
+  <string name="photo_gallery_detail_view">Photo Galleries for your the detail place selected</string>
+
 
   <!-- TODO: Remove or change this placeholder text -->
   <string name="hello_blank_fragment">Hello blank fragment</string>

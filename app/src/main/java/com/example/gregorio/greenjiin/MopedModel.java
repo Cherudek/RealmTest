@@ -17,11 +17,14 @@ public class MopedModel extends RealmObject {
   private String mopedUrl;
   @Required
   private Date timestamp;
+  @Required
+  private String companyName;
 
   public MopedModel() {
     this.mopedId = UUID.randomUUID().toString();
     this.mopedName = "";
     this.mopedUrl = "";
+    this.companyName = "";
     this.timestamp = new Date();
   }
 
@@ -55,5 +58,13 @@ public class MopedModel extends RealmObject {
 
   public void setTimestamp(Date timestamp) {
     this.timestamp = timestamp;
+  }
+
+  public String getCompanyName() {
+    return companyName;
+  }
+
+  public void setCompanyName(String companyName) {
+    this.companyName = companyName;
   }
 }

@@ -1,6 +1,5 @@
 package com.example.gregorio.greenjiin;
 
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -9,6 +8,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -29,6 +29,8 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
    * may be best to switch to a
    * {@link android.support.v4.app.FragmentStatePagerAdapter}.
    */
+
+  private static final String LOG_TAG = MainActivity.class.getSimpleName();
   private SectionsPagerAdapter mSectionsPagerAdapter;
   private LoginFragment loginFragment;
   private FacebookAuth facebookAuth;
@@ -66,15 +68,11 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         .addToBackStack(null)
         .commit();
 
-    // Create a Realm on the device and sync it to the cloud.
-    setUpRealm();
+
 
   }
 
-  private void setUpRealm() {
-    Realm.setDefaultConfiguration(SyncUser.current().getDefaultConfiguration());
-    realm = Realm.getDefaultInstance();
-  }
+
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
@@ -90,7 +88,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     // as you specify a parent activity in AndroidManifest.xml.
     int id = item.getItemId();
 
-    //noinspection SimplifiableIfStatement
+    // Log Out Method
     if (id == R.id.action_log_out) {
 
       SyncUser syncUser = SyncUser.current();
@@ -110,12 +108,16 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
   }
 
   @Override
-  public void onFragmentInteraction(Uri uri) {
+  public void onFragmentInteraction(Realm realm1) {
 
     FragmentManager fragmentManager = getSupportFragmentManager();
     fragmentManager.beginTransaction().remove(loginFragment)
         .addToBackStack(null)
         .commit();
+
+    this.realm = realm1;
+
+    Log.i(LOG_TAG, "The Realm Object is: " + realm1);
 
   }
 
@@ -181,10 +183,5 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     }
   }
 
-  @Override
-  protected void onDestroy() {
-    super.onDestroy();
-    // Close the Realm Object.
-    realm.close();
-  }
+
 }
