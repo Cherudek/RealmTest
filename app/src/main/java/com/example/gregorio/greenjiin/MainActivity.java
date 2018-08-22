@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import com.example.gregorio.greenjiin.LoginFragment.OnFragmentInteractionListener;
+import io.realm.Realm;
 import io.realm.SyncUser;
 
 public class MainActivity extends AppCompatActivity implements OnFragmentInteractionListener {
@@ -31,6 +32,8 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
   private SectionsPagerAdapter mSectionsPagerAdapter;
   private LoginFragment loginFragment;
   private FacebookAuth facebookAuth;
+  private Realm realm;
+
 
   /**
    * The {@link ViewPager} that will host the section contents.
@@ -62,6 +65,15 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     fragmentManager.beginTransaction().add(R.id.fragment_container, loginFragment)
         .addToBackStack(null)
         .commit();
+
+    // Create a Realm on the device and sync it to the cloud.
+    setUpRealm();
+
+  }
+
+  private void setUpRealm() {
+    Realm.setDefaultConfiguration(SyncUser.current().getDefaultConfiguration());
+    realm = Realm.getDefaultInstance();
   }
 
   @Override
@@ -167,5 +179,12 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
       // Show 3 total pages.
       return 3;
     }
+  }
+
+  @Override
+  protected void onDestroy() {
+    super.onDestroy();
+    // Close the Realm Object.
+    realm.close();
   }
 }
