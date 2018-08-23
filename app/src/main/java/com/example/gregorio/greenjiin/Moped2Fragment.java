@@ -8,8 +8,10 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +20,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.realm.Realm;
 import io.realm.RealmResults;
+import io.realm.Sort;
 import io.realm.SyncConfiguration;
 import io.realm.SyncUser;
 
@@ -36,6 +39,9 @@ public class Moped2Fragment extends Fragment {
   // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
   private static final String ARG_PARAM1 = "param1";
   private static final String ARG_PARAM2 = "param2";
+
+  private static final String LOG_TAG = Moped2Fragment.class.getSimpleName();
+
 
   private static final String ARG_SECTION_NUMBER = "section_number2";
   @BindView(R.id.recycler_view2)
@@ -79,28 +85,65 @@ public class Moped2Fragment extends Fragment {
         .setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
     ButterKnife.bind(this, rootView);
 
+    realm = Realm.getDefaultInstance();
+
+    final MopedCo2Adapter mopedCo2Adapter = new MopedCo2Adapter(setUpRealm());
+
+    Log.i(LOG_TAG, "Number of Mopeds: " + realm.where(MopedModel.class)
+        .contains("companyName", "mopedCo1")
+        .findAllAsync());
+
+
+    recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
+    recyclerView.setAdapter(mopedCo2Adapter);
+
+
     return rootView;
+  }
+
+  private RealmResults<MopedModel> setUpRealm() {
+    SyncConfiguration configuration = SyncUser.current().getDefaultConfiguration();
+    Log.i(LOG_TAG,"SyncConfiguration 1: " + configuration.toString());
+
+//          .createConfiguration(REALM_BASE_URL + "/default")
+//          .build();
+    realm = Realm.getInstance(configuration);
+
+    return realm
+        .where(MopedModel.class)
+        .contains("companyName", "mopedCo2")
+        .sort("timestamp", Sort.DESCENDING)
+        .findAllAsync();
   }
 
   @Override
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
-    SyncConfiguration configuration = SyncUser.current()
-        .createConfiguration(REALM_BASE_URL + "/default")
-        .build();
-
-    realm = Realm.getInstance(configuration);
-    RealmResults<MopedModel> moped = realm
-        .where(MopedModel.class)
-        .contains("companyName", "mopedCo2")
-        .findAllAsync();
-
-    final MopedCo2Adapter mopedCo2Adapter = new MopedCo2Adapter(moped, true);
-    recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
-    recyclerView.setAdapter(mopedCo2Adapter);
+//      try {
+//
+//
+//            RealmResults<MopedModel> moped = realm
+//                .where(MopedModel.class)
+//                .contains("companyName", "mopedCo2")
+//                .findAllAsync();
+//
+//            final MopedCo2Adapter mopedCo2Adapter = new MopedCo2Adapter(moped, true);
+//            recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
+//            recyclerView.setAdapter(mopedCo2Adapter);
+//
+//
+//      } finally {
+//        if(realm !=null){
+//          realm.close();
+//        }
+//      }
 
   }
+
+
+
+
 
   // TODO: Rename method, update argument and hook method into UI event
   public void onButtonPressed(Uri uri) {

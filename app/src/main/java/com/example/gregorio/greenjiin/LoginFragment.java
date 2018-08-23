@@ -97,10 +97,6 @@ public class LoginFragment extends Fragment {
       mParam2 = getArguments().getString(ARG_PARAM2);
     }
 
-    if (SyncUser.current() != null) {
-      this.goToMainActivity(realm);
-    }
-
   }
 
 
@@ -109,6 +105,7 @@ public class LoginFragment extends Fragment {
       Bundle savedInstanceState) {
     rootView = inflater.inflate(R.layout.fragment_login, container, false);
     ButterKnife.bind(this, rootView);
+    realm = Realm.getDefaultInstance();
     return rootView;
   }
 
@@ -116,12 +113,7 @@ public class LoginFragment extends Fragment {
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
-    mLoginBtn.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        attemptLogin();
-      }
-    });
+    mLoginBtn.setOnClickListener(view1 -> attemptLogin());
   }
 
   private void attemptLogin() {
@@ -137,7 +129,6 @@ public class LoginFragment extends Fragment {
       public void onSuccess(SyncUser user) {
         showProgress(false);
         goToMainActivity(realm);
-        setUpRealm();
 
       }
 
@@ -151,16 +142,6 @@ public class LoginFragment extends Fragment {
     });
   }
 
-  private RealmResults<MopedModel> setUpRealm() {
-    SyncConfiguration configuration = SyncUser.current()
-        .createConfiguration(REALM_BASE_URL + "/default")
-        .build();
-    realm = Realm.getInstance(configuration);
-    return realm
-        .where(MopedModel.class)
-        .sort("timestamp", Sort.DESCENDING)
-        .findAllAsync();
-  }
 
   @Override
   public void onDestroy() {

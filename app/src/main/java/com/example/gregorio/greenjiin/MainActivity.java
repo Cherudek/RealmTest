@@ -1,6 +1,7 @@
 package com.example.gregorio.greenjiin;
 
 import static com.example.gregorio.greenjiin.Constants.REALM_BASE_URL;
+import static io.realm.Realm.getDefaultConfiguration;
 
 import android.net.Uri;
 import android.os.Bundle;
@@ -27,9 +28,12 @@ import butterknife.ButterKnife;
 import com.example.gregorio.greenjiin.LoginFragment.OnFragmentInteractionListener;
 import com.example.gregorio.greenjiin.Moped2Fragment.OnFragment2InteractionListener;
 import io.realm.Realm;
+import io.realm.Realm.Transaction;
 import io.realm.RealmResults;
+import io.realm.Sort;
 import io.realm.SyncConfiguration;
 import io.realm.SyncUser;
+import io.realm.UserStore;
 
 public class MainActivity extends AppCompatActivity implements OnFragmentInteractionListener,
     OnFragment2InteractionListener {
@@ -62,27 +66,51 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
     Toolbar toolbar = findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
-    // Create the adapter that will return a fragment for each of the three
-    // primary sections of the activity.
-    mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
-    // Set up the ViewPager with the sections adapter.
-    mViewPager = findViewById(R.id.container);
-    mViewPager.setAdapter(mSectionsPagerAdapter);
+//    if (SyncUser.current() != null) {
+      // Create the adapter that will return a fragment for each of the three
+      // primary sections of the activity.
+      mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
-    TabLayout tabLayout = findViewById(R.id.tabs);
+      // Set up the ViewPager with the sections adapter.
+      mViewPager = findViewById(R.id.container);
+      mViewPager.setAdapter(mSectionsPagerAdapter);
 
-    mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
-    tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
+      TabLayout tabLayout = findViewById(R.id.tabs);
 
-    loginFragment = new LoginFragment();
-    FragmentManager fragmentManager = getSupportFragmentManager();
-    fragmentManager.beginTransaction().add(R.id.fragment_container, loginFragment)
-        .addToBackStack(null)
-        .commit();
+      mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+      tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
+//    } else {
+    if(SyncUser.current()==null){
+      loginFragment = new LoginFragment();
+      FragmentManager fragmentManager = getSupportFragmentManager();
+      fragmentManager.beginTransaction().add(R.id.fragment_container, loginFragment)
+          .addToBackStack(null)
+          .commit();
+    }
 
-  }
+    }
 
+//  }
+
+//  @Override
+//  protected void onResume() {
+//    super.onResume();
+//
+//    // Create the adapter that will return a fragment for each of the three
+//    // primary sections of the activity.
+//    mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+//
+//    // Set up the ViewPager with the sections adapter.
+//    mViewPager = findViewById(R.id.container);
+//    mViewPager.setAdapter(mSectionsPagerAdapter);
+//
+//    TabLayout tabLayout = findViewById(R.id.tabs);
+//
+//    mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+//    tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
+//
+//  }
 
 
   @Override
@@ -126,9 +154,9 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         .addToBackStack(null)
         .commit();
 
-    this.realm = realm1;
-
     Log.i(LOG_TAG, "The Realm Object is: " + realm1);
+
+
 
   }
 
@@ -173,6 +201,9 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
         Bundle savedInstanceState) {
+
+      realm = Realm.getDefaultInstance();
+
       rootView = inflater.inflate(R.layout.fragment_main, container, false);
       TextView textView = rootView.findViewById(R.id.section_label);
       textView
@@ -181,6 +212,14 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
 
 
+      final MopedCo1Adapter mopedCo1Adapter = new MopedCo1Adapter(setUpRealm());
+
+     // Log.i(LOG_TAG, "Number of Mopeds: " + setUpRealm().size());
+
+
+      recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
+      recyclerView.setAdapter(mopedCo1Adapter);
+
       return rootView;
     }
 
@@ -188,26 +227,51 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
       super.onViewCreated(view, savedInstanceState);
 
-      SyncConfiguration configuration = SyncUser.current()
-          .createConfiguration(REALM_BASE_URL + "/default")
-          .build();
-
-      realm = Realm.getInstance(configuration);
-      RealmResults<MopedModel> moped = realm
-          .where(MopedModel.class)
-          .contains("companyName", "mopedCo1")
-          .findAllAsync();
-
-      final MopedCo1Adapter mopedCo1Adapter = new MopedCo1Adapter(moped, true);
-      recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
-      recyclerView.setAdapter(mopedCo1Adapter);
-
+////      realm = Realm.getDefaultInstance();
+//      RealmResults<MopedModel> items = setUpRealm();
+//
+//
+//      SyncConfiguration configuration = SyncUser.current()
+//              .createConfiguration(REALM_BASE_URL + "/default")
+//              .build();
+////
+////        realm = Realm.getInstance(configuration);
+////
+////       final RealmResults<MopedModel> moped = realm
+////            .where(MopedModel.class)
+////            .contains("companyName", "mopedCo1")
+////            .findAllAsync();
+////
+////          int numberMopeds = moped.size();
+//
+////          final MopedCo1Adapter mopedCo1Adapter = new MopedCo1Adapter(moped);
+////          recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
+////          recyclerView.setAdapter(mopedCo1Adapter);
+//
+////          Log.i(LOG_TAG, "Number of Mopeds: " + numberMopeds );
 
     }
 
+    private RealmResults<MopedModel> setUpRealm() {
+      SyncConfiguration configuration = SyncUser.current().getDefaultConfiguration();
+      Log.i(LOG_TAG,"SyncConfiguration: " + configuration.toString());
+
+//          .createConfiguration(REALM_BASE_URL + "/default")
+//          .build();
+      realm = Realm.getInstance(configuration);
+
+      return realm
+          .where(MopedModel.class)
+          .contains("companyName", "mopedCo1")
+          .sort("timestamp", Sort.DESCENDING)
+          .findAllAsync();
+
+    }
+
+
     @Override
-    public void onDestroy() {
-      super.onDestroy();
+    public void onDestroyView() {
+      super.onDestroyView();
       realm.close();
     }
   }

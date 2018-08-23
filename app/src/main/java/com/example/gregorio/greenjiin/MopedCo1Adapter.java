@@ -20,16 +20,10 @@ public class MopedCo1Adapter extends RealmRecyclerViewAdapter<MopedModel, MyView
   private Context context;
 
   public MopedCo1Adapter(
-      @Nullable OrderedRealmCollection<MopedModel> data,
-      boolean autoUpdate) {
-    super(data, autoUpdate);
+      @Nullable OrderedRealmCollection<MopedModel> data) {
+    super(data, true);
   }
 
-  public MopedCo1Adapter(
-      @Nullable OrderedRealmCollection<MopedModel> data,
-      boolean autoUpdate, boolean updateOnModification) {
-    super(data, autoUpdate, updateOnModification);
-  }
 
   @NonNull
   @Override
