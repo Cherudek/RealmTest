@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     Toolbar toolbar = findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
 
-    if (SyncUser.current() != null) {
+//    if (SyncUser.current() != null) {
       // Create the adapter that will return a fragment for each of the three
       // primary sections of the activity.
       mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
       mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
       tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
-    } else {
+//    } else {
     if(SyncUser.current()==null){
       loginFragment = new LoginFragment();
       FragmentManager fragmentManager = getSupportFragmentManager();
@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
     }
 
-  }
+//  }
 
 //  @Override
 //  protected void onResume() {
