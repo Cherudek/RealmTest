@@ -1,8 +1,5 @@
 package com.example.gregorio.greenjiin;
 
-import static com.example.gregorio.greenjiin.Constants.REALM_BASE_URL;
-import static io.realm.Realm.getDefaultConfiguration;
-
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -28,12 +25,10 @@ import butterknife.ButterKnife;
 import com.example.gregorio.greenjiin.LoginFragment.OnFragmentInteractionListener;
 import com.example.gregorio.greenjiin.Moped2Fragment.OnFragment2InteractionListener;
 import io.realm.Realm;
-import io.realm.Realm.Transaction;
 import io.realm.RealmResults;
 import io.realm.Sort;
 import io.realm.SyncConfiguration;
 import io.realm.SyncUser;
-import io.realm.UserStore;
 
 public class MainActivity extends AppCompatActivity implements OnFragmentInteractionListener,
     OnFragment2InteractionListener {
@@ -67,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     Toolbar toolbar = findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
 
-//    if (SyncUser.current() != null) {
+    if (SyncUser.current() != null) {
       // Create the adapter that will return a fragment for each of the three
       // primary sections of the activity.
       mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
@@ -80,7 +75,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
       mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
       tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
-//    } else {
+    } else {
     if(SyncUser.current()==null){
       loginFragment = new LoginFragment();
       FragmentManager fragmentManager = getSupportFragmentManager();
@@ -91,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
     }
 
-//  }
+  }
 
 //  @Override
 //  protected void onResume() {
@@ -253,18 +248,27 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     }
 
     private RealmResults<MopedModel> setUpRealm() {
-      SyncConfiguration configuration = SyncUser.current().getDefaultConfiguration();
-      Log.i(LOG_TAG,"SyncConfiguration: " + configuration.toString());
+
+//      try{
+
+      if (SyncUser.current() != null) {
+        SyncConfiguration configuration = SyncUser.current().getDefaultConfiguration();
+        Log.i(LOG_TAG, "SyncConfiguration: " + configuration.toString());
 
 //          .createConfiguration(REALM_BASE_URL + "/default")
 //          .build();
-      realm = Realm.getInstance(configuration);
+        realm = Realm.getInstance(configuration);
+      } else {
+        realm = Realm.getDefaultInstance();
+
+      }
 
       return realm
           .where(MopedModel.class)
           .contains("companyName", "mopedCo1")
           .sort("timestamp", Sort.DESCENDING)
           .findAllAsync();
+
 
     }
 
