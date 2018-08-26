@@ -145,7 +145,7 @@ public class LoginFragment extends Fragment {
     String nickname = mNicknameTextView.getText().toString();
     String password = mPassword.getText().toString();
     showProgress(true);
-    SyncCredentials credentials = SyncCredentials.nickname(nickname, false);
+    SyncCredentials credentials = SyncCredentials.usernamePassword(nickname, password, true);
     SyncUser.logInAsync(credentials, AUTH_URL, new SyncUser.Callback<SyncUser>() {
       @Override
       public void onSuccess(SyncUser user) {
@@ -167,11 +167,13 @@ public class LoginFragment extends Fragment {
     mFacebookLogin.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
       @Override
       public void onSuccess(LoginResult loginResult) {
+        showProgress(true);
         String userId = loginResult.getAccessToken().getUserId();
         GraphRequest graphRequest = GraphRequest.newMeRequest(loginResult.getAccessToken(),
             new GraphJSONObjectCallback() {
               @Override
               public void onCompleted(JSONObject object, GraphResponse response) {
+                showProgress(false);
                 displayUserInfo(object);
               }
             });
@@ -192,18 +194,15 @@ public class LoginFragment extends Fragment {
             Log.e(LOG_TAG, "Realm Facebook Login Sync error: " + error.toString());
           }
         });
-
       }
 
       @Override
       public void onCancel() {
-
       }
 
       @Override
       public void onError(FacebookException error) {
         Log.i(LOG_TAG, "Facebook Login error: " + error.toString());
-
       }
     });
   }
@@ -290,14 +289,7 @@ public class LoginFragment extends Fragment {
     mListener = null;
   }
 
-  /**
-   * This interface must be implemented by activities that contain this
-   * fragment to allow an interaction in this fragment to be communicated
-   * to the activity and potentially other fragments contained in that
-   * activity.
-   */
   public interface OnFragmentInteractionListener {
-
     void onFragmentInteraction(Realm realm);
   }
 }

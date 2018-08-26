@@ -14,6 +14,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import com.example.gregorio.greenjiin.LoginFragment.OnFragmentInteractionListener;
 import com.example.gregorio.greenjiin.Moped2Fragment.OnFragment2InteractionListener;
+import com.facebook.CallbackManager;
+import com.facebook.login.LoginManager;
 import io.realm.Realm;
 import io.realm.SyncUser;
 
@@ -38,6 +40,8 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
    * The {@link ViewPager} that will host the section contents.
    */
   private ViewPager mViewPager;
+  private CallbackManager callbackManager;
+
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +54,8 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     // Create the adapter that will return a fragment for each of the three
     // primary sections of the activity.
     mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+    // Facebook Call Manager setUp.
+    callbackManager = CallbackManager.Factory.create();
 
     // Set up the ViewPager with the sections adapter.
     mViewPager = findViewById(R.id.container);
@@ -75,15 +81,17 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    // Handle action bar item clicks here. The action bar will
-    // automatically handle clicks on the Home/Up button, so long
-    // as you specify a parent activity in AndroidManifest.xml.
+    // User Logout
     int id = item.getItemId();
     // Log Out Method
     if (id == R.id.action_log_out) {
       SyncUser syncUser = SyncUser.current();
       if (syncUser != null) {
+        // Realm Logout
         syncUser.logOut();
+        // Facebook Logout
+        LoginManager.getInstance().logOut();
+        // New Login Fragment
         loginFragment = new LoginFragment();
         FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.beginTransaction().add(R.id.fragment_container, loginFragment)
@@ -113,11 +121,9 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
    * one of the sections/tabs/pages.
    */
   public class SectionsPagerAdapter extends FragmentPagerAdapter {
-
     public SectionsPagerAdapter(FragmentManager fm) {
       super(fm);
     }
-
     @Override
     public Fragment getItem(int position) {
       // getItem is called to instantiate the fragment for the given page.
