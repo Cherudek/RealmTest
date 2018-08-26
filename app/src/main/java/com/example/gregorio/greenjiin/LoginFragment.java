@@ -1,12 +1,12 @@
 package com.example.gregorio.greenjiin;
 
 import static com.example.gregorio.greenjiin.Constants.AUTH_URL;
-import static com.example.gregorio.greenjiin.Constants.REALM_BASE_URL;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -23,13 +23,22 @@ import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.GraphRequest;
+import com.facebook.GraphRequest.GraphJSONObjectCallback;
+import com.facebook.GraphResponse;
+import com.facebook.login.LoginResult;
+import com.facebook.login.widget.LoginButton;
 import io.realm.ObjectServerError;
 import io.realm.Realm;
-import io.realm.RealmResults;
-import io.realm.Sort;
-import io.realm.SyncConfiguration;
 import io.realm.SyncCredentials;
 import io.realm.SyncUser;
+import io.realm.SyncUser.Callback;
+import java.util.Arrays;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -46,13 +55,16 @@ public class LoginFragment extends Fragment {
   private static final String ARG_PARAM1 = "param1";
   private static final String ARG_PARAM2 = "param2";
 
+  private static final String LOG_TAG = LoginFragment.class.getSimpleName();
+  private static final String EMAIL = "email";
+  private static final String PUBLIC_PROFILE = "public_profile";
+
+
+
   // TODO: Rename and change types of parameters
   private String mParam1;
   private String mParam2;
   private Realm realm;
-
-  // private EditText mNicknameTextView;
-  // private View mProgressView;
   @BindView(R.id.sign_in_form)
   ScrollView mLoginFormView;
   @BindView(R.id.username)
@@ -63,6 +75,9 @@ public class LoginFragment extends Fragment {
   ProgressBar mProgressView;
   @BindView(R.id.sign_in_button)
   Button mLoginBtn;
+  @BindView(R.id.login_button)
+  LoginButton mFacebookLogin;
+  private CallbackManager callbackManager;
   private View rootView;
 
   private OnFragmentInteractionListener mListener;
@@ -99,49 +114,121 @@ public class LoginFragment extends Fragment {
 
   }
 
-
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
       Bundle savedInstanceState) {
     rootView = inflater.inflate(R.layout.fragment_login, container, false);
     ButterKnife.bind(this, rootView);
     realm = Realm.getDefaultInstance();
+    callbackManager = CallbackManager.Factory.create();
+    mFacebookLogin.setReadPermissions(Arrays.asList(EMAIL, PUBLIC_PROFILE));
+    mFacebookLogin.setFragment(this);
     return rootView;
   }
 
   @Override
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
-
-    mLoginBtn.setOnClickListener(view1 -> attemptLogin());
+    mLoginBtn.setOnClickListener(view1 -> attemptEmailLogin());
+    mFacebookLogin.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        attemptFacebookLogin();
+      }
+    });
   }
 
-  private void attemptLogin() {
+  private void attemptEmailLogin() {
     // Reset errors.
     mNicknameTextView.setError(null);
     // Store values at the time of the login attempt.
     String nickname = mNicknameTextView.getText().toString();
+    String password = mPassword.getText().toString();
     showProgress(true);
-
     SyncCredentials credentials = SyncCredentials.nickname(nickname, false);
     SyncUser.logInAsync(credentials, AUTH_URL, new SyncUser.Callback<SyncUser>() {
       @Override
       public void onSuccess(SyncUser user) {
         showProgress(false);
         goToMainActivity(realm);
-
       }
 
       @Override
       public void onError(ObjectServerError error) {
         showProgress(false);
-        mNicknameTextView.setError("Uh oh something went wrong! (check your logcat please)");
+        mNicknameTextView.setError("Uh oh something went wrong! (check your logcat and Internet)");
         mNicknameTextView.requestFocus();
-        Log.e("Login error", error.toString());
+        Log.e(LOG_TAG, "Email Login error: " + error.toString());
       }
     });
   }
 
+  private void attemptFacebookLogin() {
+    mFacebookLogin.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+      @Override
+      public void onSuccess(LoginResult loginResult) {
+        String userId = loginResult.getAccessToken().getUserId();
+        GraphRequest graphRequest = GraphRequest.newMeRequest(loginResult.getAccessToken(),
+            new GraphJSONObjectCallback() {
+              @Override
+              public void onCompleted(JSONObject object, GraphResponse response) {
+                displayUserInfo(object);
+              }
+            });
+        Bundle parameters = new Bundle();
+        parameters.putString("fields", "firstName, lastName, email, id");
+        graphRequest.setParameters(parameters);
+
+        // Realm Sync Credential with Facebook Login
+        SyncCredentials credentials = SyncCredentials.nickname(userId, false);
+        SyncUser.logInAsync(credentials, AUTH_URL, new Callback<SyncUser>() {
+          @Override
+          public void onSuccess(SyncUser result) {
+            goToMainActivity(realm);
+          }
+
+          @Override
+          public void onError(ObjectServerError error) {
+            Log.e(LOG_TAG, "Realm Facebook Login Sync error: " + error.toString());
+          }
+        });
+
+      }
+
+      @Override
+      public void onCancel() {
+
+      }
+
+      @Override
+      public void onError(FacebookException error) {
+        Log.i(LOG_TAG, "Facebook Login error: " + error.toString());
+
+      }
+    });
+  }
+
+  public void displayUserInfo(JSONObject object) {
+    String firstName, lastName, email, id;
+    firstName = "";
+    lastName = "";
+    email = "";
+    id = "";
+    try {
+      firstName = object.getString("firstName");
+      lastName = object.getString("lastName");
+      email = object.getString("email");
+      id = object.getString("id");
+    } catch (JSONException e) {
+      e.printStackTrace();
+    }
+  }
+
+  @Override
+  public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    super.onActivityResult(requestCode, resultCode, data);
+    callbackManager.onActivityResult(requestCode, resultCode, data);
+  }
 
   @Override
   public void onDestroy() {
