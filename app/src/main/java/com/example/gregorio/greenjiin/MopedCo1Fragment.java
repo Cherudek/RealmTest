@@ -51,6 +51,7 @@ public class MopedCo1Fragment extends Fragment {
     return rootView;
   }
 
+
   private RealmResults<MopedModel> setUpRealm() {
     if (SyncUser.current() != null) {
       SyncConfiguration configuration = SyncUser.current().getDefaultConfiguration();

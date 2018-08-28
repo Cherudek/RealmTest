@@ -21,6 +21,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
+import android.widget.Toast;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import com.facebook.CallbackManager;
@@ -189,6 +190,8 @@ public class LoginFragment extends Fragment {
 
           @Override
           public void onError(ObjectServerError error) {
+            Toast.makeText(getContext(), "There was an error please check your internet",
+                Toast.LENGTH_LONG).show();
             Log.e(LOG_TAG, "Realm Facebook Login Sync error: " + error.toString());
           }
         });

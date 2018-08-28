@@ -12,6 +12,8 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import com.example.gregorio.greenjiin.LoginFragment.OnFragmentInteractionListener;
 import com.example.gregorio.greenjiin.Moped2Fragment.OnFragment2InteractionListener;
 import com.facebook.CallbackManager;
@@ -34,33 +36,31 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
   private static final String LOG_TAG = MainActivity.class.getSimpleName();
   private SectionsPagerAdapter mSectionsPagerAdapter;
   private LoginFragment loginFragment;
-  private FacebookAuth facebookAuth;
 
   /**
    * The {@link ViewPager} that will host the section contents.
    */
-  private ViewPager mViewPager;
-  private CallbackManager callbackManager;
+  @BindView(R.id.container)
+  ViewPager mViewPager;
+  @BindView(R.id.tabs)
+  TabLayout tabLayout;
+  @BindView(R.id.toolbar)
+  Toolbar toolbar;
 
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
-
-    Toolbar toolbar = findViewById(R.id.toolbar);
+    ButterKnife.bind(this);
     setSupportActionBar(toolbar);
-
+    // Facebook Call Manager setUp.
+    CallbackManager callbackManager = CallbackManager.Factory.create();
     // Create the adapter that will return a fragment for each of the three
     // primary sections of the activity.
     mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-    // Facebook Call Manager setUp.
-    callbackManager = CallbackManager.Factory.create();
-
     // Set up the ViewPager with the sections adapter.
-    mViewPager = findViewById(R.id.container);
     mViewPager.setAdapter(mSectionsPagerAdapter);
-    TabLayout tabLayout = findViewById(R.id.tabs);
     mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
     tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
     if(SyncUser.current()==null){
@@ -71,6 +71,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
           .commit();
     }
   }
+
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
@@ -109,6 +110,10 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     fragmentManager.beginTransaction().remove(loginFragment)
         .addToBackStack(null)
         .commit();
+    mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+    mViewPager.setAdapter(mSectionsPagerAdapter);
+    mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+    tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
     Log.i(LOG_TAG, "The Realm Object is: " + realm1);
   }
 
