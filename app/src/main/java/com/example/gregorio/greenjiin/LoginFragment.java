@@ -59,8 +59,6 @@ public class LoginFragment extends Fragment {
   private static final String EMAIL = "email";
   private static final String PUBLIC_PROFILE = "public_profile";
 
-
-
   // TODO: Rename and change types of parameters
   private String mParam1;
   private String mParam2;
